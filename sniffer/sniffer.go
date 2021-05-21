@@ -69,6 +69,7 @@ func NewWorker(lt layers.LinkType) (Worker, error) {
 }
 
 func (mw *MainWorker) OnPacket(data []byte, ci *gopacket.CaptureInfo) {
+	// in decoder/decoder.go
 	mw.decoder.Process(data, ci)
 }
 
@@ -243,7 +244,8 @@ LOOP:
 			fmt.Println("Press enter to read next packet")
 			fmt.Scanln()
 		}
-
+		// In default, the type of sniffer.DataSource is *pcap.Handle
+		// https://github.com/google/gopacket/blob/master/pcap/pcap.go
 		data, ci, err := sniffer.DataSource.ReadPacketData()
 
 		if err == pcap.NextErrorTimeoutExpired || sniffer.afpacketHandle.IsErrTimeout(err) || err == syscall.EINTR {
@@ -314,7 +316,7 @@ LOOP:
 		} else if sniffer.config.WriteFile != "" {
 			sniffer.dumpChan <- &dump.Packet{Ci: ci, Data: data}
 		}
-
+		
 		sniffer.worker.OnPacket(data, &ci)
 	}
 	sniffer.Close()
