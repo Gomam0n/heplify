@@ -15,7 +15,7 @@ import (
 const version = "heplify 1.63"
 
 func createFlags() {
-
+	//Command line parameter
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Use %s like: %s [option]\n", version, os.Args[0])
 		flag.PrintDefaults()
@@ -58,6 +58,7 @@ func createFlags() {
 	flag.StringVar(&fileRotator.Name, "n", "heplify.log", "Log filename")
 	flag.IntVar(&fNum, "fnum", 7, "The total num of log files to keep")
 	flag.Uint64Var(&fSize, "fsize", 10*1024*1024, "The rotate size per log file based on byte")
+	//important
 	flag.StringVar(&config.Cfg.Mode, "m", "SIPRTCP", "Capture modes [SIP, SIPDNS, SIPLOG, SIPRTCP]")
 	flag.BoolVar(&config.Cfg.Dedup, "dd", false, "Deduplicate packets")
 	flag.StringVar(&config.Cfg.Discard, "di", "", "Discard uninteresting packets by any string")
@@ -68,6 +69,7 @@ func createFlags() {
 	flag.StringVar(&config.Cfg.HepNodePW, "hp", "", "HEP node PW")
 	flag.UintVar(&config.Cfg.HepNodeID, "hi", 2002, "HEP node ID")
 	flag.StringVar(&config.Cfg.HepNodeName, "hn", "", "HEP node Name")
+	//important
 	flag.StringVar(&config.Cfg.Network, "nt", "udp", "Network types are [udp, tcp, tls]")
 	flag.BoolVar(&config.Cfg.Protobuf, "protobuf", false, "Use Protobuf on wire")
 	flag.BoolVar(&config.Cfg.Reassembly, "tcpassembly", false, "If true, tcpassembly will be enabled")
@@ -125,9 +127,12 @@ func main() {
 
 	var wg sync.WaitGroup
 	for i := 0; i < worker; i++ {
+		// mode is parameter, default is SIPRTP. Iface is ifaceConfig
+		// the function is in sniffer/sniffer.go
+		// capture is a &SnifferSetup{}
 		capture, err := sniffer.New(config.Cfg.Mode, config.Cfg.Iface)
 		checkCritErr(err)
-
+		// defer function will be executed after "return"
 		defer func() {
 			err = capture.Close()
 			checkCritErr(err)
@@ -135,6 +140,7 @@ func main() {
 
 		wg.Add(1)
 		go func() {
+			// the function is in sniffer/sniffer.go
 			err = capture.Run()
 			checkCritErr(err)
 			wg.Done()
