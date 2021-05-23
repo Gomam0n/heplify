@@ -365,6 +365,7 @@ func (d *Decoder) processTransport(foundLayerTypes *[]gopacket.LayerType, udp *l
 		case layers.LayerTypeTCP:
 			pkt.SrcPort = uint16(tcp.SrcPort)
 			pkt.DstPort = uint16(tcp.DstPort)
+			// important
 			pkt.Payload = tcp.Payload
 			atomic.AddUint64(&d.tcpCount, 1)
 			logp.Debug("payload", "TCP:\n%s", pkt)
