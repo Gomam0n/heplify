@@ -222,8 +222,11 @@ func (d *Decoder) Process(data []byte, ci *gopacket.CaptureInfo) {
 			}
 
 		case layers.LayerTypeIPv4:
+			// atomic is sync/atomic, 原子操作
 			atomic.AddUint64(&d.ip4Count, 1)
 			if d.ip4.Flags&layers.IPv4DontFragment != 0 || (d.ip4.Flags&layers.IPv4MoreFragments == 0 && d.ip4.FragOffset == 0) {
+				// The two conditions are both true in the test 
+				// The function is just below
 				d.processTransport(&d.decodedLayers, &d.udp, &d.tcp, &d.sctp, d.ip4.NetworkFlow(), ci, 0x02, uint8(d.ip4.Protocol), d.ip4.SrcIP, d.ip4.DstIP)
 				break
 			}
@@ -367,9 +370,12 @@ func (d *Decoder) processTransport(foundLayerTypes *[]gopacket.LayerType, udp *l
 			logp.Debug("payload", "TCP:\n%s", pkt)
 
 			if config.Cfg.Reassembly {
+				// command line parameter -tcpassembly
+				// This function is in https://github.com/google/gopacket/blob/master/tcpassembly/assembly.go
 				d.asm.AssembleWithTimestamp(flow, tcp, ci.Timestamp)
 				return
 			}
+			// This function is in decoder/corelator.go
 			extractCID(pkt.SrcIP, pkt.SrcPort, pkt.DstIP, pkt.DstPort, pkt.Payload)
 
 		case layers.LayerTypeSCTP:
